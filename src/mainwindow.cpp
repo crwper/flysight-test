@@ -55,13 +55,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize button states
     on_fileList_itemSelectionChanged();
-    on_exportList_itemSelectionChanged();
 
     // File list double-click
     connect(ui->fileList,   SIGNAL(itemDoubleClicked(QListWidgetItem*)),
             this,           SLOT(exportItem(QListWidgetItem*)));
-    connect(ui->exportList, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-            this,           SLOT(reexportItem(QListWidgetItem*)));
 }
 
 MainWindow::~MainWindow()
@@ -86,7 +83,6 @@ void MainWindow::setRootFolder(
 
     // Update file lists
     ui->fileList->setRootFolder(rootDir.absoluteFilePath("staged"));
-    ui->exportList->setRootFolder(rootDir.absoluteFilePath("exported"));
 }
 
 void MainWindow::on_browseButton_clicked()
@@ -133,15 +129,6 @@ void MainWindow::on_exportButton_clicked()
     }
 }
 
-void MainWindow::on_reexportButton_clicked()
-{
-    foreach (QListWidgetItem *item,
-             ui->exportList->selectedItems())
-    {
-        reexportItem(item);
-    }
-}
-
 void MainWindow::on_fileList_itemSelectionChanged()
 {
     // Enable "Remove" button
@@ -151,21 +138,11 @@ void MainWindow::on_fileList_itemSelectionChanged()
     enableExportButtons();
 }
 
-void MainWindow::on_exportList_itemSelectionChanged()
-{
-    // Enable export buttons
-    enableExportButtons();
-}
-
 void MainWindow::enableExportButtons()
 {
     // Enable buttons
     ui->exportButton->setEnabled(
                 !exportBusy && ui->fileList->selectedItems().size() == 1);
-
-    // Enable buttons
-    ui->reexportButton->setEnabled(
-                !exportBusy && ui->exportList->selectedItems().size() == 1);
 }
 
 void MainWindow::onExportReady()
@@ -297,45 +274,6 @@ void MainWindow::exportItem(
 
     // Move file to exported folder
     QFile::rename(stagedFile, exportedFile);
-
-    // Inter-process communications
-    QSharedMemory shared("FlySight_Viewer_Import_Shared");
-    QSystemSemaphore free("FlySight_Viewer_Import_Free", 1, QSystemSemaphore::Open);
-    QSystemSemaphore used("FlySight_Viewer_Import_Used", 0, QSystemSemaphore::Open);
-
-    shared.create(1000);
-    shared.attach();
-
-    // Export to FlySight Viewer
-    free.acquire();
-
-    shared.lock();
-    QChar *buf = (QChar *) shared.data();
-    QByteArray bytes = exportedFile.toUtf8();
-    memcpy(buf, bytes, bytes.size());
-    shared.unlock();
-
-    used.release();
-
-    shared.detach();
-}
-
-void MainWindow::reexportItem(
-        QListWidgetItem *item)
-{
-    // Return immediately if busy
-    if (exportBusy) return;
-
-    // Disable export buttons
-    exportBusy = true;
-    enableExportButtons();
-    QTimer::singleShot(EXPORT_BUTTON_DELAY, this, SLOT(onExportReady()));
-
-    QDir rootDir(ui->dstEdit->text());
-    QDir exportedDir(rootDir.absoluteFilePath("exported"));
-
-    // Filename in "exported" sub-tree
-    QString exportedFile = exportedDir.absoluteFilePath(item->text());
 
     // Inter-process communications
     QSharedMemory shared("FlySight_Viewer_Import_Shared");

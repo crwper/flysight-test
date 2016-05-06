@@ -48,17 +48,14 @@ private slots:
     void on_browseButton_clicked();
     void on_removeButton_clicked();
     void on_exportButton_clicked();
-    void on_reexportButton_clicked();
 
     void on_fileList_itemSelectionChanged();
-    void on_exportList_itemSelectionChanged();
 
     void onCopied(QString filename);
     void onCopyFinished();
     void onExportReady();
 
     void exportItem(QListWidgetItem *item);
-    void reexportItem(QListWidgetItem *item);
 };
 
 #endif // MAINWINDOW_H
