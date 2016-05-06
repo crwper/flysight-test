@@ -30,11 +30,7 @@ private:
     int  copyThreads;
     UINT queryCancelAutoPlay;
 
-    bool exportBusy;
-
     void setRootFolder(QString rootFolder);
-
-    void enableExportButtons();
 
     bool fileIsJump(const QString &fileName);
 
@@ -47,15 +43,11 @@ private:
 private slots:
     void on_browseButton_clicked();
     void on_removeButton_clicked();
-    void on_exportButton_clicked();
+    void on_testButton_clicked();
 
     void on_fileList_itemSelectionChanged();
 
-    void onCopied(QString filename);
     void onCopyFinished();
-    void onExportReady();
-
-    void exportItem(QTableWidgetItem *item);
 };
 
 #endif // MAINWINDOW_H

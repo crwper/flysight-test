@@ -27,8 +27,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    copyThreads(0),
-    exportBusy(false)
+    copyThreads(0)
 {
     // Initialize UI object
     ui->setupUi(this);
@@ -120,123 +119,104 @@ void MainWindow::on_removeButton_clicked()
     }
 }
 
-void MainWindow::on_exportButton_clicked()
+void MainWindow::on_testButton_clicked()
 {
+    QDir rootDir(ui->dstEdit->text());
+    QDir stagedDir(rootDir.absoluteFilePath("staged"));
+
     foreach (QTableWidgetItem *item,
              ui->fileList->selectedItems())
     {
-        exportItem(item);
+        QFile file(stagedDir.absoluteFilePath(item->text()));
+        if (!file.open(QIODevice::ReadOnly)) return;
+
+        QTextStream in(&file);
+
+        // Column enumeration
+        typedef enum {
+            Time = 0,
+            Lat,
+            Lon,
+            HMSL,
+            VelN,
+            VelE,
+            VelD,
+            HAcc,
+            VAcc,
+            SAcc,
+            Heading,
+            CAcc,
+            NumSV
+        } Columns;
+
+        // Read column labels
+        QMap< int, int > colMap;
+        if (!in.atEnd())
+        {
+            QString line = in.readLine();
+            QStringList cols = line.split(",");
+
+            for (int i = 0; i < cols.size(); ++i)
+            {
+                const QString &s = cols[i];
+
+                if (s == "time")    colMap[Time]    = i;
+                if (s == "lat")     colMap[Lat]     = i;
+                if (s == "lon")     colMap[Lon]     = i;
+                if (s == "hMSL")    colMap[HMSL]    = i;
+                if (s == "velN")    colMap[VelN]    = i;
+                if (s == "velE")    colMap[VelE]    = i;
+                if (s == "velD")    colMap[VelD]    = i;
+                if (s == "hAcc")    colMap[HAcc]    = i;
+                if (s == "vAcc")    colMap[VAcc]    = i;
+                if (s == "sAcc")    colMap[SAcc]    = i;
+                if (s == "numSV")   colMap[NumSV]   = i;
+            }
+        }
+
+        // Skip next row
+        if (!in.atEnd()) in.readLine();
+
+        // Initialize statistics
+        bool first = true;
+
+        QDateTime startTime, endTime;
+
+        while (!in.atEnd())
+        {
+            QString line = in.readLine();
+            QStringList cols = line.split(",");
+
+            QDateTime dateTime = QDateTime::fromString(cols[colMap[Time]], Qt::ISODate);
+            int numSV = cols[colMap[NumSV]].toInt();
+
+            if (first)
+            {
+                startTime = dateTime;
+                first = false;
+            }
+            else
+            {
+                endTime = dateTime;
+            }
+        }
+
+        // Calculate length of log file
+        qint64 start = startTime.toMSecsSinceEpoch();
+        qint64 end = endTime.toMSecsSinceEpoch();
+        double length = (double) (end - start) / 1000 / 60 / 60;
+
+        int row = item->row();
+        QTableWidgetItem *newItem = new QTableWidgetItem(tr("%1").arg(length));
+        ui->fileList->setItem(row, 1, newItem);
     }
 }
 
 void MainWindow::on_fileList_itemSelectionChanged()
 {
-    // Enable "Remove" button
-    ui->removeButton->setEnabled(ui->fileList->selectedItems().size() > 0);
-
-    // Enable export buttons
-    enableExportButtons();
-}
-
-void MainWindow::enableExportButtons()
-{
     // Enable buttons
-    ui->exportButton->setEnabled(
-                !exportBusy && ui->fileList->selectedItems().size() == 1);
-}
-
-void MainWindow::onExportReady()
-{
-    exportBusy = false;
-    enableExportButtons();
-}
-
-void MainWindow::onCopied(
-        QString filename)
-{
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly)) return;
-
-    QTextStream in(&file);
-
-    // Column enumeration
-    typedef enum {
-        Time = 0,
-        Lat,
-        Lon,
-        HMSL,
-        VelN,
-        VelE,
-        VelD,
-        HAcc,
-        VAcc,
-        SAcc,
-        Heading,
-        CAcc,
-        NumSV
-    } Columns;
-
-    // Read column labels
-    QMap< int, int > colMap;
-    if (!in.atEnd())
-    {
-        QString line = in.readLine();
-        QStringList cols = line.split(",");
-
-        for (int i = 0; i < cols.size(); ++i)
-        {
-            const QString &s = cols[i];
-
-            if (s == "time")    colMap[Time]    = i;
-            if (s == "lat")     colMap[Lat]     = i;
-            if (s == "lon")     colMap[Lon]     = i;
-            if (s == "hMSL")    colMap[HMSL]    = i;
-            if (s == "velN")    colMap[VelN]    = i;
-            if (s == "velE")    colMap[VelE]    = i;
-            if (s == "velD")    colMap[VelD]    = i;
-            if (s == "hAcc")    colMap[HAcc]    = i;
-            if (s == "vAcc")    colMap[VAcc]    = i;
-            if (s == "sAcc")    colMap[SAcc]    = i;
-            if (s == "numSV")   colMap[NumSV]   = i;
-        }
-    }
-
-    // Skip next row
-    if (!in.atEnd()) in.readLine();
-
-    // Initialize statistics
-    bool first = true;
-
-    QDateTime startTime, endTime;
-
-    while (!in.atEnd())
-    {
-        QString line = in.readLine();
-        QStringList cols = line.split(",");
-
-        QDateTime dateTime = QDateTime::fromString(cols[colMap[Time]], Qt::ISODate);
-        int numSV = cols[colMap[NumSV]].toInt();
-
-        if (first)
-        {
-            startTime = dateTime;
-        }
-        else
-        {
-            endTime = dateTime;
-        }
-    }
-
-    // Calculate length of log file
-    qint64 start = startTime.toMSecsSinceEpoch();
-    qint64 end = endTime.toMSecsSinceEpoch();
-    double length = (double) (end - start) / 1000;
-
-    QList< QTableWidgetItem* > list = ui->fileList->findItems(filename, Qt::MatchExactly);
-    foreach (QTableWidgetItem *item, list)
-    {
-
-    }
+    ui->removeButton->setEnabled(ui->fileList->selectedItems().size() > 0);
+    ui->testButton->setEnabled(ui->fileList->selectedItems().size() > 0);
 }
 
 void MainWindow::onCopyFinished()
@@ -246,55 +226,6 @@ void MainWindow::onCopyFinished()
     {
         ui->statusBar->clearMessage();
     }
-}
-
-void MainWindow::exportItem(
-        QTableWidgetItem *item)
-{
-    // Return immediately if busy
-    if (exportBusy) return;
-
-    // Disable export buttons
-    exportBusy = true;
-    enableExportButtons();
-    QTimer::singleShot(EXPORT_BUTTON_DELAY, this, SLOT(onExportReady()));
-
-    QDir rootDir(ui->dstEdit->text());
-    QDir stagedDir(rootDir.absoluteFilePath("staged"));
-    QDir exportedDir(rootDir.absoluteFilePath("exported"));
-
-    // Filename in "staged" sub-tree
-    QString stagedFile = stagedDir.absoluteFilePath(item->text());
-
-    // Filename in "exported" sub-tree
-    QString exportedFile = exportedDir.absoluteFilePath(item->text());
-
-    // Make sure destination folder exists
-    rootDir.mkpath(QFileInfo(exportedFile).absolutePath());
-
-    // Move file to exported folder
-    QFile::rename(stagedFile, exportedFile);
-
-    // Inter-process communications
-    QSharedMemory shared("FlySight_Viewer_Import_Shared");
-    QSystemSemaphore free("FlySight_Viewer_Import_Free", 1, QSystemSemaphore::Open);
-    QSystemSemaphore used("FlySight_Viewer_Import_Used", 0, QSystemSemaphore::Open);
-
-    shared.create(1000);
-    shared.attach();
-
-    // Export to FlySight Viewer
-    free.acquire();
-
-    shared.lock();
-    QChar *buf = (QChar *) shared.data();
-    QByteArray bytes = exportedFile.toUtf8();
-    memcpy(buf, bytes, bytes.size());
-    shared.unlock();
-
-    used.release();
-
-    shared.detach();
 }
 
 bool MainWindow::nativeEvent(
@@ -438,7 +369,6 @@ void MainWindow::handleDeviceInsert(
 
     // Connect worker thread to controller
     connect(thread, SIGNAL(started()),  worker, SLOT(process()));
-    connect(worker, SIGNAL(copied(QString)), this, SLOT(onCopied(QString)));
     connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
     connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
     connect(worker, SIGNAL(finished()), this, SLOT(onCopyFinished()));

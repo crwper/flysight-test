@@ -56,7 +56,7 @@
           <enum>QAbstractItemView::ExtendedSelection</enum>
          </property>
          <property name="columnCount">
-          <number>1</number>
+          <number>2</number>
          </property>
          <attribute name="horizontalHeaderVisible">
           <bool>false</bool>
@@ -64,6 +64,7 @@
          <attribute name="verticalHeaderVisible">
           <bool>false</bool>
          </attribute>
+         <column/>
          <column/>
         </widget>
        </item>
@@ -90,9 +91,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="exportButton">
+          <widget class="QPushButton" name="testButton">
            <property name="text">
-            <string>Export</string>
+            <string>Test</string>
            </property>
            <property name="default">
             <bool>true</bool>
@@ -130,7 +131,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>exportButton</tabstop>
+  <tabstop>testButton</tabstop>
   <tabstop>dstEdit</tabstop>
   <tabstop>browseButton</tabstop>
   <tabstop>removeButton</tabstop>
