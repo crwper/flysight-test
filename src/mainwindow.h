@@ -40,7 +40,6 @@ private:
 
     QString readConfigId(QString fileName);
     bool writeConfigId(QString fileName, QString id);
-    bool archiveFolderExists(QString id);
 
     void handleDeviceInsert(int driveNum);
     void handleDeviceRemove(int driveNum);

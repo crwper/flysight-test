@@ -9,10 +9,7 @@ class CopyWorker : public QObject
 {
     Q_OBJECT
 public:
-    enum StageMode { stageNone, stageLast, stageAll };
-
-    CopyWorker(const QString &srcPath, const QString &dstPath,
-               const QString &stagePath, StageMode mode);
+    CopyWorker(const QString &srcPath, const QString &stagePath);
     ~CopyWorker();
 
 public slots:
@@ -23,11 +20,9 @@ signals:
 
 private:
     QDir srcDir;
-    QDir dstDir;
     QDir stageDir;
-    StageMode stageMode;
 
-    void copyFolder(const QString &path);
+    bool copyFolder(const QString &path);
     bool fileIsJump(const QString &fileName);
 };
 

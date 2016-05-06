@@ -20,10 +20,6 @@ public:
     void setName(const QString &newName);
     QString name() const ;
 
-    bool stageNone() const ;
-    bool stageLast() const ;
-    bool stageAll() const ;
-
 protected:
     bool nativeEvent(const QByteArray &eventType,
                      void *message, long *result);

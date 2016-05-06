@@ -8,9 +8,6 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     // Initialize UI object
     ui->setupUi(this);
 
-    // Do not stage jumps
-    ui->stageNone->setChecked(true);
-
     // Message for AutoRun notifications
     queryCancelAutoPlay = RegisterWindowMessage(L"QueryCancelAutoPlay");
 }
@@ -30,21 +27,6 @@ void ConfigDialog::setName(
 QString ConfigDialog::name() const
 {
     return ui->name->text();
-}
-
-bool ConfigDialog::stageNone() const
-{
-    return ui->stageNone->isChecked();
-}
-
-bool ConfigDialog::stageLast() const
-{
-    return ui->stageLast->isChecked();
-}
-
-bool ConfigDialog::stageAll() const
-{
-    return ui->stageAll->isChecked();
 }
 
 bool ConfigDialog::nativeEvent(

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>252</width>
-    <height>158</height>
+    <height>69</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Competitor's name:</string>
+        <string>Unit name:</string>
        </property>
        <property name="buddy">
         <cstring>name</cstring>
@@ -39,36 +39,6 @@
     </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string/>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QRadioButton" name="stageAll">
-        <property name="text">
-         <string>Stage all jumps</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="stageLast">
-        <property name="text">
-         <string>Stage most recent jump</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="stageNone">
-        <property name="text">
-         <string>Do not stage jumps</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -82,8 +52,6 @@
  </widget>
  <tabstops>
   <tabstop>name</tabstop>
-  <tabstop>stageLast</tabstop>
-  <tabstop>stageNone</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>

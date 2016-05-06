@@ -5,13 +5,9 @@
 
 CopyWorker::CopyWorker(
         const QString &srcPath,
-        const QString &dstPath,
-        const QString &stagePath,
-        StageMode mode):
+        const QString &stagePath):
     srcDir(srcPath),
-    dstDir(dstPath),
-    stageDir(stagePath),
-    stageMode(mode)
+    stageDir(stagePath)
 {
     // Initialize here
 }
@@ -23,12 +19,6 @@ CopyWorker::~CopyWorker()
 
 void CopyWorker::process()
 {
-    if (!dstDir.exists())
-    {
-        // Create folder
-        dstDir.mkpath(".");
-    }
-
     if (!stageDir.exists())
     {
         // Create folder
@@ -46,7 +36,7 @@ void CopyWorker::process()
 
         if (!rx.indexIn(path))
         {
-            copyFolder(path);
+            if (copyFolder(path)) break;
         }
     }
 
@@ -54,7 +44,7 @@ void CopyWorker::process()
     emit finished();
 }
 
-void CopyWorker::copyFolder(
+bool CopyWorker::copyFolder(
         const QString &path)
 {
     QDir subDir = srcDir.absoluteFilePath(path);
@@ -70,79 +60,31 @@ void CopyWorker::copyFolder(
         // Archived/staged filename
         QString newFile = path + "-" + file;
 
-        if (!rx.indexIn(file) && !dstDir.exists(newFile))
+        if (!rx.indexIn(file))
         {
-            QString srcFilePath  = subDir.absoluteFilePath(file);
-            QString dstFilePath  = dstDir.absoluteFilePath(newFile);
-            QString stageFilePath = stageDir.absoluteFilePath(newFile);
+            // Source filename
+            QString srcFilePath = subDir.absoluteFilePath(file);
 
-            if (stageMode == stageAll)
+            if (fileIsJump(srcFilePath))
             {
-                // Copy file
-                QFile::copy(srcFilePath, dstFilePath);
+                // Staged filename
+                QString stageFilePath = stageDir.absoluteFilePath(newFile);
 
-                if (fileIsJump(dstFilePath))
-                {
-                    // Copy file to "staged" sub-tree
-                    QFile::copy(dstFilePath, stageFilePath);
-                }
-            }
-            else if (stageMode == stageLast)
-            {
-                // Copy file
-                QFile::copy(srcFilePath, dstFilePath);
+                // Copy file to "staged" sub-tree
+                QFile::copy(srcFilePath, stageFilePath);
 
-                if (fileIsJump(dstFilePath))
-                {
-                    // Copy file to "staged" sub-tree
-                    QFile::copy(dstFilePath, stageFilePath);
-
-                    // Don't stage again
-                    stageMode = stageNone;
-                }
-            }
-            else
-            {
-                // Create empty placeholder file
-                QFile(dstFilePath).open(QIODevice::WriteOnly);
+                // Don't stage again
+                return true;
             }
         }
     }
+
+    return false;
 }
 
 bool CopyWorker::fileIsJump(
         const QString &fileName)
 {
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)) return false;
-
-    // Throw away first two lines
-    file.readLine();
-    file.readLine();
-
-    // Performance limits of u-blox module
-    double hMin =  50000;
-    double hMax = -50000;
-
-    while (!file.atEnd())
-    {
-        QString line = file.readLine();
-
-        // Parse the line
-        QStringList cols = line.split(",");
-        if (cols.length() < 12) continue;
-
-        bool ok;
-        double hMSL = cols[3].toDouble(&ok);
-        if (!ok) continue;
-
-        // Update elevation range
-        if (hMSL < hMin) hMin = hMSL;
-        if (hMSL > hMax) hMax = hMSL;
-    }
-
-    // A jump should have at least 1000 m range
-    if (hMax - hMin < 1000) return false;
-
-    return true;
+    QFileInfo fi(fileName);
+    return fi.size() > 1000000;
 }

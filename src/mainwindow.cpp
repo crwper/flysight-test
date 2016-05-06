@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget *parent) :
     queryCancelAutoPlay = RegisterWindowMessage(L"QueryCancelAutoPlay");
 
     // Initialize settings object
-    QSettings settings("FlySight", "Ingest");
+    QSettings settings("FlySight", "Test");
 
     // Get root folder
     QString rootFolder = settings.value("rootFolder").toString();
@@ -66,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     // Initialize settings object
-    QSettings settings("FlySight", "Ingest");
+    QSettings settings("FlySight", "Test");
 
     // Write INI filename
     settings.setValue("rootFolder", ui->dstEdit->text());
@@ -385,15 +385,6 @@ bool MainWindow::writeConfigId(
     return true;
 }
 
-bool MainWindow::archiveFolderExists(
-        QString id)
-{
-    QDir rootDir(ui->dstEdit->text());
-    QDir archiveDir(rootDir.absoluteFilePath("archived"));
-    QDir subDir(archiveDir.absoluteFilePath(id));
-    return subDir.exists();
-}
-
 void MainWindow::handleDeviceInsert(
         int driveNum)
 {
@@ -401,56 +392,13 @@ void MainWindow::handleDeviceInsert(
             .arg(QString("ABCDEFGHIJKLMNOPQRSTUVWXYZ").at(driveNum));
     QString configPath(rootPath + QString("CONFIG.TXT"));
 
-    QString id = readConfigId(configPath);
 
-    // By default copy all jumps
-    CopyWorker::StageMode mode = CopyWorker::stageAll;
+    // Run the configuration dialog
+    ConfigDialog dlg(this);
+    if (!dlg.exec()) return;
 
-    if (id.isEmpty() || !archiveFolderExists(id))
-    {
-        ConfigDialog dlg(this);
-
-        // Set competitor's name
-        dlg.setName(id);
-
-        // Run the dialog
-        if (!dlg.exec()) return;
-
-        // Get competitor's name
-        id = dlg.name().trimmed();
-
-        // Which jumps should we stage?
-        if (dlg.stageLast())      mode = CopyWorker::stageLast;
-        else if (dlg.stageNone()) mode = CopyWorker::stageNone;
-
-        if (QFile::exists(configPath))
-        {
-            int i;
-            for (i = 0; i < 1000; ++i)
-            {
-                QString newPath(rootPath +
-                                QString("CONFIG_") +
-                                QString("%1").arg(i, 3, 10, QChar('0')) +
-                                QString(".TXT"));
-                if (!QFile::exists(newPath))
-                {
-                    QFile::rename(configPath, newPath);
-                    break;
-                }
-            }
-            if (i == 1000)
-            {
-                QMessageBox::warning(this, "", "Couldn't initialize FlySight.");
-                return;
-            }
-        }
-
-        if (!writeConfigId(configPath, id))
-        {
-            QMessageBox::warning(this, "", "Couldn't initialize FlySight.");
-            return;
-        }
-    }
+    // Get unit name
+    QString id = dlg.name().trimmed();
 
     // Create worker thread
     QThread *thread = new QThread;
@@ -458,9 +406,7 @@ void MainWindow::handleDeviceInsert(
     // Create worker thread controller
     CopyWorker *worker = new CopyWorker(
                 rootPath,
-                ui->dstEdit->text() + QDir::separator() + "archived" + QDir::separator() + id,
-                ui->dstEdit->text() + QDir::separator() + "staged" + QDir::separator() + id,
-                mode);
+                ui->dstEdit->text() + QDir::separator() + "staged" + QDir::separator() + id);
     worker->moveToThread(thread);
 
     // Connect worker thread to controller
