@@ -53,6 +53,7 @@ private slots:
     void on_fileList_itemSelectionChanged();
     void on_exportList_itemSelectionChanged();
 
+    void onCopied(QString filename);
     void onCopyFinished();
     void onExportReady();
 

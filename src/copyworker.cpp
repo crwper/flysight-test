@@ -73,6 +73,9 @@ bool CopyWorker::copyFolder(
                 // Copy file to "staged" sub-tree
                 QFile::copy(srcFilePath, stageFilePath);
 
+                // Let main thread know the file was copied
+                emit copied(stageFilePath);
+
                 // Don't stage again
                 return true;
             }

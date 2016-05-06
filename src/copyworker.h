@@ -17,6 +17,7 @@ public slots:
 
 signals:
     void finished();
+    void copied(QString filename);
 
 private:
     QDir srcDir;

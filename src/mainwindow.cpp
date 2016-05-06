@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <dbt.h>
 
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -171,6 +172,94 @@ void MainWindow::onExportReady()
 {
     exportBusy = false;
     enableExportButtons();
+}
+
+void MainWindow::onCopied(
+        QString filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly)) return;
+
+    QTextStream in(&file);
+
+    // Column enumeration
+    typedef enum {
+        Time = 0,
+        Lat,
+        Lon,
+        HMSL,
+        VelN,
+        VelE,
+        VelD,
+        HAcc,
+        VAcc,
+        SAcc,
+        Heading,
+        CAcc,
+        NumSV
+    } Columns;
+
+    // Read column labels
+    QMap< int, int > colMap;
+    if (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList cols = line.split(",");
+
+        for (int i = 0; i < cols.size(); ++i)
+        {
+            const QString &s = cols[i];
+
+            if (s == "time")    colMap[Time]    = i;
+            if (s == "lat")     colMap[Lat]     = i;
+            if (s == "lon")     colMap[Lon]     = i;
+            if (s == "hMSL")    colMap[HMSL]    = i;
+            if (s == "velN")    colMap[VelN]    = i;
+            if (s == "velE")    colMap[VelE]    = i;
+            if (s == "velD")    colMap[VelD]    = i;
+            if (s == "hAcc")    colMap[HAcc]    = i;
+            if (s == "vAcc")    colMap[VAcc]    = i;
+            if (s == "sAcc")    colMap[SAcc]    = i;
+            if (s == "numSV")   colMap[NumSV]   = i;
+        }
+    }
+
+    // Skip next row
+    if (!in.atEnd()) in.readLine();
+
+    // Initialize statistics
+    bool first = true;
+
+    QDateTime startTime, endTime;
+
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList cols = line.split(",");
+
+        QDateTime dateTime = QDateTime::fromString(cols[colMap[Time]], Qt::ISODate);
+        int numSV = cols[colMap[NumSV]].toInt();
+
+        if (first)
+        {
+            startTime = dateTime;
+        }
+        else
+        {
+            endTime = dateTime;
+        }
+    }
+
+    // Calculate length of log file
+    qint64 start = startTime.toMSecsSinceEpoch();
+    qint64 end = endTime.toMSecsSinceEpoch();
+    double length = (double) (end - start) / 1000;
+
+    QList< QListWidgetItem* > list = ui->fileList->findItems(filename, Qt::MatchExactly);
+    foreach (QListWidgetItem *item, list)
+    {
+
+    }
 }
 
 void MainWindow::onCopyFinished()
@@ -411,6 +500,7 @@ void MainWindow::handleDeviceInsert(
 
     // Connect worker thread to controller
     connect(thread, SIGNAL(started()),  worker, SLOT(process()));
+    connect(worker, SIGNAL(copied(QString)), this, SLOT(onCopied(QString)));
     connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
     connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
     connect(worker, SIGNAL(finished()), this, SLOT(onCopyFinished()));
