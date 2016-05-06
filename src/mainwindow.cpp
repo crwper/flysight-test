@@ -1,3 +1,4 @@
+#include <math.h>
 #include <windows.h>
 #include <dbt.h>
 
@@ -181,6 +182,8 @@ void MainWindow::on_testButton_clicked()
         bool first = true;
 
         QDateTime startTime, endTime;
+        double s1 = 0, s2 = 0;
+        int n = 0;
 
         while (!in.atEnd())
         {
@@ -199,6 +202,11 @@ void MainWindow::on_testButton_clicked()
             {
                 endTime = dateTime;
             }
+
+            s1 += numSV;
+            s2 += numSV * numSV;
+
+            ++n;
         }
 
         // Calculate length of log file
@@ -209,6 +217,12 @@ void MainWindow::on_testButton_clicked()
         int row = item->row();
         QTableWidgetItem *newItem = new QTableWidgetItem(tr("%1").arg(length));
         ui->fileList->setItem(row, 1, newItem);
+
+        newItem = new QTableWidgetItem(tr("%1").arg(s1 / n));
+        ui->fileList->setItem(row, 2, newItem);
+
+        newItem = new QTableWidgetItem(tr("%1").arg(sqrt(n * s2 - s1 * s1) / n));
+        ui->fileList->setItem(row, 3, newItem);
     }
 }
 
