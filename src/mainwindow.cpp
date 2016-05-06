@@ -57,8 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     on_fileList_itemSelectionChanged();
 
     // File list double-click
-    connect(ui->fileList,   SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-            this,           SLOT(exportItem(QListWidgetItem*)));
+    connect(ui->fileList,   SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
+            this,           SLOT(exportItem(QTableWidgetItem*)));
 }
 
 MainWindow::~MainWindow()
@@ -111,7 +111,7 @@ void MainWindow::on_removeButton_clicked()
         QDir rootDir(ui->dstEdit->text());
         QDir stagedDir(rootDir.absoluteFilePath("staged"));
 
-        foreach (QListWidgetItem *item,
+        foreach (QTableWidgetItem *item,
                  ui->fileList->selectedItems())
         {
             // Delete file from folder
@@ -122,7 +122,7 @@ void MainWindow::on_removeButton_clicked()
 
 void MainWindow::on_exportButton_clicked()
 {
-    foreach (QListWidgetItem *item,
+    foreach (QTableWidgetItem *item,
              ui->fileList->selectedItems())
     {
         exportItem(item);
@@ -232,8 +232,8 @@ void MainWindow::onCopied(
     qint64 end = endTime.toMSecsSinceEpoch();
     double length = (double) (end - start) / 1000;
 
-    QList< QListWidgetItem* > list = ui->fileList->findItems(filename, Qt::MatchExactly);
-    foreach (QListWidgetItem *item, list)
+    QList< QTableWidgetItem* > list = ui->fileList->findItems(filename, Qt::MatchExactly);
+    foreach (QTableWidgetItem *item, list)
     {
 
     }
@@ -249,7 +249,7 @@ void MainWindow::onCopyFinished()
 }
 
 void MainWindow::exportItem(
-        QListWidgetItem *item)
+        QTableWidgetItem *item)
 {
     // Return immediately if busy
     if (exportBusy) return;

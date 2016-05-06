@@ -6,7 +6,7 @@
 #include <QMainWindow>
 #include <QString>
 
-class QListWidgetItem;
+class QTableWidgetItem;
 
 namespace Ui {
 class MainWindow;
@@ -55,7 +55,7 @@ private slots:
     void onCopyFinished();
     void onExportReady();
 
-    void exportItem(QListWidgetItem *item);
+    void exportItem(QTableWidgetItem *item);
 };
 
 #endif // MAINWINDOW_H

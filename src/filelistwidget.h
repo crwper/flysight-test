@@ -3,9 +3,9 @@
 
 #include <QDir>
 #include <QFileSystemWatcher>
-#include <QListWidget>
+#include <QTableWidget>
 
-class FileListWidget : public QListWidget
+class FileListWidget : public QTableWidget
 {
     Q_OBJECT
 

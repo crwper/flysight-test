@@ -3,7 +3,7 @@
 #include <QDir>
 
 FileListWidget::FileListWidget(QWidget *parent) :
-    QListWidget(parent)
+    QTableWidget(parent)
 {
     // Connect file system watcher
     QObject::connect(&watcher, SIGNAL(directoryChanged(QString)),
@@ -76,9 +76,9 @@ void FileListWidget::updateList(
 
     // Get current list from widget
     QStringList oldFiles;
-    for (int i = 0; i < count(); ++i)
+    for (int i = 0; i < rowCount(); ++i)
     {
-        oldFiles << subDir.relativeFilePath(item(i)->text());
+        oldFiles << subDir.relativeFilePath(item(i, 0)->text());
     }
 
     // Get items to remove from list
@@ -98,7 +98,7 @@ void FileListWidget::updateList(
     // Remove items from list
     foreach (QString fileName, toRemove)
     {
-        foreach (QListWidgetItem *item,
+        foreach (QTableWidgetItem *item,
                  findItems(rootDir.relativeFilePath(fileName),
                            Qt::MatchFixedString))
         {
@@ -107,7 +107,13 @@ void FileListWidget::updateList(
     }
 
     // Add items to list
-    addItems(toAdd);
+    foreach (QString fileName, toAdd)
+    {
+        int row = rowCount();
+        insertRow(row);
+        QTableWidgetItem *item = new QTableWidgetItem(fileName);
+        setItem(row, 0, item);
+    }
 }
 
 QStringList FileListWidget::getFiles(
