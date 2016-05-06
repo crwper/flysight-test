@@ -1,4 +1,4 @@
-flysight-ingest
+flysight-test
 ===============
 
-FlySight Ingest Tool
+FlySight Test Tool

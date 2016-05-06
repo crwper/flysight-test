@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = FlySightIngest
+TARGET = FlySightTest
 TEMPLATE = app
 
 
@@ -26,4 +26,4 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     configdialog.ui
 
-RC_FILE += FlySightIngest.rc
+RC_FILE += FlySightTest.rc
