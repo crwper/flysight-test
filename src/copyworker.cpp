@@ -26,7 +26,7 @@ void CopyWorker::process()
     }
 
     // Read from oldest to newest
-    srcDir.setSorting(QDir::Name | QDir::Reversed);
+    srcDir.setSorting(QDir::Name);
 
     // Handle child folders
     foreach (QString path, srcDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
@@ -65,29 +65,19 @@ bool CopyWorker::copyFolder(
             // Source filename
             QString srcFilePath = subDir.absoluteFilePath(file);
 
-            if (fileIsJump(srcFilePath))
-            {
-                // Staged filename
-                QString stageFilePath = stageDir.absoluteFilePath(newFile);
+            // Staged filename
+            QString stageFilePath = stageDir.absoluteFilePath(newFile);
 
-                // Copy file to "staged" sub-tree
-                QFile::copy(srcFilePath, stageFilePath);
+            // Copy file to "staged" sub-tree
+            QFile::copy(srcFilePath, stageFilePath);
 
-                // Let main thread know the file was copied
-                emit copied(stageFilePath);
+            // Let main thread know the file was copied
+            emit copied(stageFilePath);
 
-                // Don't stage again
-                return true;
-            }
+            // Don't stage again
+            return true;
         }
     }
 
     return false;
-}
-
-bool CopyWorker::fileIsJump(
-        const QString &fileName)
-{
-    QFileInfo fi(fileName);
-    return fi.size() > 1000000;
 }
