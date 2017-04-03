@@ -55,6 +55,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize button states
     on_fileList_itemSelectionChanged();
+
+    // Change file list header
+    ui->fileList->setHorizontalHeaderLabels(QStringList() << "File name" << "Length (hours)" << "Avg. numSV" << "Std. Dev. numSV");
 }
 
 MainWindow::~MainWindow()
