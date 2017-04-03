@@ -26,7 +26,7 @@ void CopyWorker::process()
     }
 
     // Read from oldest to newest
-    srcDir.setSorting(QDir::Name);
+    srcDir.setSorting(QDir::Name | QDir::Reversed);
 
     // Handle child folders
     foreach (QString path, srcDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))

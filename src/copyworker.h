@@ -24,7 +24,6 @@ private:
     QDir stageDir;
 
     bool copyFolder(const QString &path);
-    bool fileIsJump(const QString &fileName);
 };
 
 #endif // COPYWORKER_H
