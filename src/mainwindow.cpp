@@ -55,10 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Initialize button states
     on_fileList_itemSelectionChanged();
-
-    // File list double-click
-    connect(ui->fileList,   SIGNAL(itemDoubleClicked(QTableWidgetItem*)),
-            this,           SLOT(exportItem(QTableWidgetItem*)));
 }
 
 MainWindow::~MainWindow()
