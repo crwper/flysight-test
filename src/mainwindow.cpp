@@ -147,7 +147,8 @@ void MainWindow::on_testButton_clicked()
             SAcc,
             Heading,
             CAcc,
-            NumSV
+            NumSV,
+            NumColumns
         } Columns;
 
         // Read column labels
@@ -189,6 +190,8 @@ void MainWindow::on_testButton_clicked()
         {
             QString line = in.readLine();
             QStringList cols = line.split(",");
+
+            if (cols.length() < NumColumns) continue;
 
             QDateTime dateTime = QDateTime::fromString(cols[colMap[Time]], Qt::ISODate);
             int numSV = cols[colMap[NumSV]].toInt();
